@@ -1,0 +1,17 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.c>
+// complete fact function recursively
+int fact(int n)
+{
+	//code here.......
+	
+}
+// main programm here 
+int main()
+{
+	int n;
+	scanf("%d",&n);
+	printf("%d",fact(n));	
+	return 0;
+}

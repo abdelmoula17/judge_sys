@@ -1,0 +1,9 @@
+This task is to find factorial of n numbers. TASK: To find the factorial of n numbers. Use three variables c,n,fact=1. 
+INPUT FORMAT: 
+Use printf statement. 
+Use scanf statement to get the integer n. 
+Use FOR loop. 
+OUTPUT FORMAT: 
+Use printf statement to print the output. 
+SAMPLE INPUT: 3 
+SAMPLE OUTPUT: 6
