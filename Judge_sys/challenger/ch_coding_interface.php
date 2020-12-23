@@ -1,11 +1,47 @@
 <?php
     session_start();
     include '../connection/connect.php';
+    function get_number_of_line($file_path)
+    { 
+
+        $line = 0;
+        $fp = fopen($file_path,"r");
+        while(!feof($fp))
+        {
+          $lines = trim(fgets($fp));
+          $line++;
+        }
+        fclose($file_path);
+        return $line;      
+    }
+    
     $pr_id = isset($_GET['pr_id']) ? $_GET['pr_id'] : "";
     $select_problem = "SELECT * FROM problems WHERE pr_id = $pr_id";
     $query = $conn->query($select_problem);
     $row= $query->fetch_assoc();
     $_SESSION["path"] = $row["path"];
+    $path = $row["path"];
+
+    // get the number of lines in file
+    $number_of_lines = get_number_of_line('../'.$path.'/input.txt');
+    //echo  $number_of_lines;
+    // storing input/output values into session table
+    $out_open = fopen('../'.$path.'/output.txt',"r");
+    $inp_open = fopen('../'.$path.'/input.txt',"r");
+    //$out_results = array($number_of_lines);
+    $i = 0;
+    while($i < $number_of_lines)
+    {
+        $out_line = trim(fgets($out_open));
+        $inp_line = trim(fgets($inp_open));
+        //$out_results[$i] = $line_;
+        $_SESSION["out_values"][$i] = $out_line;
+        $_SESSION["inp_values"][$i] = $inp_line;
+        $i++;
+    }
+    
+       //print_r($_SESSION["out_result"]);
+    
 ?> 
 <!DOCTYPE html>
 <html>
@@ -35,6 +71,7 @@
         <link rel="stylesheet" href="codemirror/theme/dracula.css">
   <!-- Custom styles for this template-->
   <link href="css/sb-admin-2.min.css" rel="stylesheet">
+  <link href= "css/grid-result.css" rel = "stylesheet">
 
 </head>
 
@@ -318,7 +355,7 @@
             <!-- Nav Item - User Information -->
             <li class="nav-item dropdown no-arrow">
               <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Valerie Luna</span>
+                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?php echo $_SESSION['user']; ?></span>
                 <img class="img-profile rounded-circle" src="https://source.unsplash.com/QAB-WJcbgJk/60x60">
               </a>
               <!-- Dropdown - User Information -->
@@ -354,11 +391,11 @@
         <!-- Page Heading -->
         <h1 class="h3 mb-4 text-gray-800">Blank Page</h1>
         <div class= "container">
-          <div class="row p-3 mb-2 bg-primary text-white">
+          <div class="row p-3 mb-2 bg-light text-white">
             <div class = "col-sm">
               <?php echo $row['pr_description']; ?>
               <div class="embed-responsive embed-responsive-1by1">
-                    <iframe class="embed-responsive-item" src="../day.pdf"></iframe>
+                    <iframe class="embed-responsive-item" src='../<?php echo $path."/desc.pdf"; ?>'></iframe>
                 </div>
             </div>
         </div>
@@ -381,13 +418,21 @@
           </div>
 
         </div>
-        
-        </div>
-        <button type= 'submit' onclick="test()">test1</button>       
+        <div class = "row p-3 mb-2 bg-light text-white">
+            <div class = "col-sm">
+              <button type= 'submit' class="btn btn-primary btn-lg" onclick="run_code()">Run code</button>
+              <button type= 'submit' class="btn btn-success btn-lg" onclick="submit_code()">Submit code</button>
+            </div>
+          </div>
+          <div class = "row p-3 mb-2 bg-light text-black" id = "code_result">
 
-        <div id = "code_result">
+          </div>
+          
+    
 
-        </div> 
+      </div>
+         
+
 
         <!-- /.container-fluid -->
 
@@ -470,26 +515,59 @@
           xmlhttp.send();    
 
         }
-        // function test(){
+        // run code function core
+        function run_code(){
         
-        //   let submitted_info = {
-        //     "last_modfied" : '',
-        //     "lang" :  document.getElementById("inlineFormCustomSelect").value,
-        //     "code" : cm1.getValue(),
-        //     "challenger" : 'undefiend'
-        //   }
-        //   console.log(submitted_info.lang);
-        //   //console.log(submitted_info.lang)
-        //   var xmlhttp = new XMLHttpRequest();
-        //   xmlhttp.onreadystatechange = function() {
-        //       if (this.readyState == 4 && this.status == 200) {
-        //         document.getElementById("code_result").innerHTML  = this.responseText;
-        //       }
-        //   };
-        //     xmlhttp.open("GET", "code_run/mysdk.php?code=" + escape(submitted_info.code), true);
-        //     xmlhttp.send();
+          let submitted_info = {
+            "last_modfied" : '',
+            "lang" :  document.getElementById("inlineFormCustomSelect").value,
+            "code" : cm1.getValue(),
+            "challenger" : 'undefiend'
+          }
+
+          console.log(escape(submitted_info.code));
+
+
+          //console.log(submitted_info.lang)
+          var xmlhttp = new XMLHttpRequest();
+          xmlhttp.onreadystatechange = function() {
+              if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("code_result").innerHTML  = this.responseText;
+              }
+          };
+  
+            xmlhttp.open("GET", "code_run/runcode.php?code=" + encodeURIComponent(submitted_info.code)+"&pr_id=<?php echo $pr_id; ?>", true);
+            xmlhttp.send();
           
-        // }
+        }
+        
+        // submit code function core
+        function submit_code(){
+        
+        let submitted_info = {
+          "last_modfied" : '',
+          "lang" :  document.getElementById("inlineFormCustomSelect").value,
+          "code" : cm1.getValue(),
+          "challenger" : 'undefiend'
+        }
+
+        console.log(escape(submitted_info.code));
+
+
+        //console.log(submitted_info.lang)
+        var xmlhttp = new XMLHttpRequest();
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+              document.getElementById("code_result").innerHTML  = this.responseText;
+            }
+        };
+
+          xmlhttp.open("GET", "code_run/submitcode.php?code=" + encodeURIComponent(submitted_info.code)+"&pr_id=<?php echo $pr_id; ?>", true);
+          xmlhttp.send();
+        
+      }
+
+
         
       </script>
 

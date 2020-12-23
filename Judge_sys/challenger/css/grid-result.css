@@ -1,0 +1,13 @@
+#test_row{
+    display : grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-gap : 5px;
+}
+#code_result{   
+    display : grid;
+    /*grid-template-rows: 1fr 1fr;*/
+}
+img{
+    width : 64px;
+    height : 64px;
+}
